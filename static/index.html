@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smithy — Task Board</title>
+  <style>
+    /* ── Brand tokens ─────────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500&display=swap');
+
+    :root {
+      --teal:   #0D7377;
+      --teal-dim: #0a5c5f;
+      --teal-glow: rgba(13, 115, 119, 0.35);
+      --coral:  #E07A5F;
+      --coral-glow: rgba(224, 122, 95, 0.2);
+      --gold:   #D4A843;
+      --gold-glow: rgba(212, 168, 67, 0.2);
+      --green:  #2D8B6F;
+      --green-glow: rgba(45, 139, 111, 0.2);
+      --red:    #C44536;
+
+      --bg:        #161A1A;
+      --surface:   #1E2424;
+      --surface-2: #272E2E;
+      --surface-3: #303939;
+      --border:    #2E3838;
+      --border-light: #3d4d4d;
+      --text:      #E8EEEE;
+      --text-muted:#7A9090;
+      --text-dim:  #5a7070;
+
+      --radius: 8px;
+      --radius-lg: 12px;
+      --font: "DM Sans", "Helvetica Neue", Helvetica, sans-serif;
+      --font-mono: "JetBrains Mono", "SF Mono", monospace;
+
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: auto;
+      /* Subtle noise texture */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+    }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    .header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      background: rgba(22, 26, 26, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--teal);
+      border-radius: 6px;
+      position: relative;
+    }
+    .logo-icon svg { width: 16px; height: 16px; transition: transform 0.3s var(--ease-spring); }
+    .logo:hover .logo-icon svg { transform: rotate(-12deg) scale(1.1); }
+    .logo-icon { transition: box-shadow 0.3s ease; }
+    .logo:hover .logo-icon { box-shadow: 0 0 12px var(--teal-glow); }
+    .logo-text { color: var(--text); letter-spacing: 0.03em; font-weight: 700; }
+
+    .header-title {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .header-actions { margin-left: auto; display: flex; gap: 8px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      transition: opacity 0.15s, transform 0.1s, background 0.15s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.95); }
+    .btn-primary {
+      background: var(--teal);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(13, 115, 119, 0.3);
+    }
+    .btn-primary:hover {
+      background: var(--teal-dim);
+      box-shadow: 0 2px 8px rgba(13, 115, 119, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-weight: 400;
+    }
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+      background: rgba(255,255,255,0.03);
+    }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: none;
+      padding: 4px 8px;
+      transition: color 0.15s, transform 0.1s, background 0.15s;
+    }
+    .btn-danger:hover {
+      color: #e05555;
+      background: rgba(196, 69, 54, 0.1);
+      border-radius: 4px;
+    }
+
+    /* ── Board ─────────────────────────────────────────────────────── */
+    .board {
+      display: flex;
+      gap: 16px;
+      padding: 20px 24px;
+      min-height: calc(100vh - 60px);
+      align-items: flex-start;
+    }
+
+    .column {
+      flex: 1;
+      min-width: 280px;
+      max-width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 100px);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .column-header {
+      padding: 14px 16px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .column-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .dot-todo { background: var(--text-muted); }
+    .dot-in-progress { background: var(--teal); box-shadow: 0 0 8px var(--teal-glow); animation: dotPulse 2.5s ease-in-out infinite; }
+    .dot-done { background: var(--green); }
+
+    @keyframes dotPulse {
+      0%, 100% { box-shadow: 0 0 6px var(--teal-glow); }
+      50% { box-shadow: 0 0 14px var(--teal-glow), 0 0 4px var(--teal); }
+    }
+
+    .column-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .column-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 1px 8px;
+      min-width: 22px;
+      text-align: center;
+      font-family: var(--font-mono);
+      transition: transform 0.2s var(--ease-spring), background 0.2s;
+    }
+
+    .column-body {
+      padding: 10px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Scrollbar */
+    .column-body::-webkit-scrollbar { width: 4px; }
+    .column-body::-webkit-scrollbar-track { background: transparent; }
+    .column-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Drop zone ─────────────────────────────────────────────────── */
+    .column-body {
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+    .column-body.drag-over {
+      background: rgba(13, 115, 119, 0.06);
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 20px rgba(13, 115, 119, 0.08);
+    }
+    .column-body.drag-over::after {
+      content: '';
+      display: block;
+      border: 2px dashed rgba(13, 115, 119, 0.3);
+      border-radius: var(--radius);
+      min-height: 52px;
+      animation: dropPulse 1s ease-in-out infinite;
+    }
+    @keyframes dropPulse {
+      0%, 100% { border-color: rgba(13, 115, 119, 0.2); }
+      50% { border-color: rgba(13, 115, 119, 0.5); }
+    }
+
+    /* ── Task card ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      cursor: pointer;
+      position: relative;
+      transition:
+        transform 0.25s var(--ease-out-expo),
+        box-shadow 0.25s var(--ease-out-expo),
+        border-color 0.2s ease,
+        background 0.2s ease;
+      will-change: transform;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-light);
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.25),
+        0 1px 3px rgba(0,0,0,0.15);
+      background: var(--surface-3);
+    }
+    .card:hover::before {
+      opacity: 1;
+      background: linear-gradient(135deg, rgba(13,115,119,0.04), transparent 60%);
+    }
+    .card:active {
+      transform: translateY(-1px) scale(0.99);
+      transition-duration: 0.08s;
+    }
+    /* Priority-colored left accent on hover */
+    .card::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 8px; bottom: 8px;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+    .card:hover::after { opacity: 1; }
+    .card[data-priority="high"]::after { background: var(--coral); }
+    .card[data-priority="medium"]::after { background: var(--gold); }
+    .card[data-priority="low"]::after { background: var(--teal); }
+
+    .card.dragging {
+      opacity: 0.6;
+      transform: rotate(3deg) scale(1.04);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--teal);
+      z-index: 10;
+    }
+    /* Prevent card children from intercepting drop events */
+    .card * { pointer-events: none; }
+    .card:not(.dragging) * { pointer-events: auto; }
+
+    /* Staggered entrance animation for cards */
+    .card { animation: cardIn 0.3s var(--ease-out-expo) backwards; }
+    .card:nth-child(1) { animation-delay: 0.03s; }
+    .card:nth-child(2) { animation-delay: 0.06s; }
+    .card:nth-child(3) { animation-delay: 0.09s; }
+    .card:nth-child(4) { animation-delay: 0.12s; }
+    .card:nth-child(5) { animation-delay: 0.15s; }
+    .card:nth-child(n+6) { animation-delay: 0.18s; }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .card-id {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-left: auto;
+      transition: box-shadow 0.2s ease, transform 0.2s var(--ease-spring);
+    }
+    .badge-high   { background: rgba(224,122,95,0.15); color: var(--coral); }
+    .badge-medium { background: rgba(212,168,67,0.15); color: var(--gold); }
+    .badge-low    { background: rgba(13,115,119,0.15); color: var(--teal); }
+    .card:hover .badge-high   { box-shadow: 0 0 8px var(--coral-glow); }
+    .card:hover .badge-medium { box-shadow: 0 0 8px var(--gold-glow); }
+    .card:hover .badge-low    { box-shadow: 0 0 8px var(--teal-glow); }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .column[data-status="done"] .card-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-comments {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* ── Add card inline ───────────────────────────────────────────── */
+    .add-card-zone {
+      padding: 0 10px 10px;
+      flex-shrink: 0;
+    }
+
+    .add-card-btn {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      font-family: var(--font);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .add-card-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+      background: rgba(13, 115, 119, 0.05);
+      transform: translateY(-1px);
+    }
+
+    .add-card-form {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .add-card-form.active {
+      display: flex;
+      animation: formSlideIn 0.2s var(--ease-out-expo);
+    }
+    @keyframes formSlideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .add-card-form input,
+    .add-card-form textarea,
+    .add-card-form select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      resize: vertical;
+    }
+    .add-card-form input:focus,
+    .add-card-form textarea:focus,
+    .add-card-form select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+    .add-card-form select {
+      cursor: pointer;
+      appearance: none;
+      padding-right: 28px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9090' d='M0 0l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .add-card-actions { display: flex; gap: 6px; }
+
+    /* ── Modal overlay ─────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 500;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 60px;
+      overflow-y: auto;
+      animation: overlayIn 0.2s ease;
+    }
+    .modal-overlay.active { display: flex; }
+    @keyframes overlayIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03);
+      margin-bottom: 40px;
+      animation: modalIn 0.15s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      padding: 20px 24px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .modal-header-left { flex: 1; }
+
+    .modal-id {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .modal-title-display {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      cursor: text;
+      padding: 2px 4px;
+      border-radius: 4px;
+      word-break: break-word;
+    }
+    .modal-title-display:hover { background: var(--surface-2); }
+
+    .modal-title-input {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--teal);
+      border-radius: 6px;
+      padding: 4px 8px;
+      width: 100%;
+      font-family: var(--font);
+      outline: none;
+      display: none;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s, transform 0.1s;
+    }
+    .modal-close:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+    .modal-close:active { transform: scale(0.9); }
+
+    .modal-meta {
+      padding: 12px 24px 0;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .meta-value select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 4px 8px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      padding-right: 24px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9090' d='M0 0l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
+    .meta-value select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+    .meta-date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Description ───────────────────────────────────────────────── */
+    .modal-section {
+      padding: 16px 24px 0;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .description-display {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: text;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 40px;
+    }
+    .description-display:hover { background: var(--surface-2); }
+    .description-display.empty { font-style: italic; color: var(--text-dim); }
+
+    .description-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--teal);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 8px 10px;
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+      display: none;
+    }
+
+    /* ── Comments ──────────────────────────────────────────────────── */
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .comment {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      animation: commentIn 0.2s var(--ease-out-expo);
+    }
+    @keyframes commentIn {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .comment-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .comment-body { flex: 1; }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .comment-author {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .comment-time {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .comment-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .comment-delete {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 4px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .comment:hover .comment-delete { opacity: 1; }
+    .comment-delete:hover { color: var(--red); }
+
+    .comment-input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 12px;
+    }
+
+    .comment-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      resize: none;
+      min-height: 36px;
+      max-height: 120px;
+    }
+    .comment-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+    .no-comments {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    /* ── Modal footer ──────────────────────────────────────────────── */
+    .modal-footer {
+      padding: 16px 24px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+
+    /* ── Toast ─────────────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+    }
+    .toast {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 10px 16px;
+      animation: slideUp 0.25s var(--ease-out-expo);
+      max-width: 280px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .toast.hiding {
+      animation: slideOut 0.2s ease forwards;
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(20px); }
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .board { flex-direction: column; align-items: stretch; }
+      .column { max-width: none; max-height: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <span class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 3L7 10l4 4 7-7" /><path d="M10 13l-5 8 8-5" /><circle cx="17" cy="7" r="1.5" fill="#fff" stroke="none" />
+      </svg>
+    </span>
+    <span class="logo-text">Smithy</span>
+  </div>
+  <div class="header-actions">
+    <span id="task-count" style="font-size:12px;color:var(--text-muted);line-height:32px;"></span>
+  </div>
+</div>
+
+<!-- Board -->
+<div class="board" id="board">
+  <!-- Columns rendered by JS -->
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal">
+    <!-- Populated by openModal() -->
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+/* ── State ──────────────────────────────────────────────────────── */
+let tasks = [];
+let currentTaskId = null;
+
+const COLUMNS = [
+  { status: 'todo',        label: 'To Do',        dotClass: 'dot-todo' },
+  { status: 'in_progress', label: 'In Progress',  dotClass: 'dot-in-progress' },
+  { status: 'done',        label: 'Done',          dotClass: 'dot-done' },
+];
+
+/* ── API helpers ────────────────────────────────────────────────── */
+async function apiFetch(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+/* ── Load & render board ────────────────────────────────────────── */
+async function loadTasks() {
+  try {
+    tasks = await apiFetch('GET', '/api/tasks');
+    // Migrate old tasks that have 'completed' but no 'status'
+    tasks.forEach(t => {
+      if (!t.status) t.status = t.completed ? 'done' : 'todo';
+      if (!t.comments) t.comments = [];
+      if (!t.description) t.description = '';
+    });
+    renderBoard();
+  } catch (e) {
+    toast('Could not load tasks: ' + e.message, 'error');
+  }
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = COLUMNS.map(col => {
+    const colTasks = tasks.filter(t => t.status === col.status);
+    const sorted = sortTasks(colTasks);
+    return `
+      <div class="column" data-status="${col.status}">
+        <div class="column-header">
+          <div class="column-dot ${col.dotClass}"></div>
+          <span class="column-title">${esc(col.label)}</span>
+          <span class="column-count">${colTasks.length}</span>
+        </div>
+        <div class="column-body"
+             ondragover="handleDragOver(event)"
+             ondragenter="handleDragEnter(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event, '${col.status}')">
+          ${sorted.map(t => cardHTML(t)).join('')}
+        </div>
+        <div class="add-card-zone">
+          <button class="add-card-btn" id="add-btn-${col.status}"
+                  onclick="showAddForm('${col.status}')">+ Add card</button>
+          <div class="add-card-form" id="add-form-${col.status}">
+            <input type="text" placeholder="Title" id="add-title-${col.status}" autocomplete="off"
+                   onkeydown="if(event.key==='Enter')submitAddForm('${col.status}');if(event.key==='Escape')hideAddForm('${col.status}')" />
+            <select id="add-priority-${col.status}">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+            <div class="add-card-actions">
+              <button class="btn btn-primary btn-sm" onclick="submitAddForm('${col.status}')">Add</button>
+              <button class="btn btn-ghost btn-sm" onclick="hideAddForm('${col.status}')">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Update header count
+  const total = tasks.length;
+  const done = tasks.filter(t => t.status === 'done').length;
+  document.getElementById('task-count').textContent =
+    total === 0 ? '' : `${total - done} active / ${total} total`;
+}
+
+function sortTasks(list) {
+  const weight = { high: 0, medium: 1, low: 2 };
+  return [...list].sort((a, b) => {
+    if (a.priority !== b.priority) return weight[a.priority] - weight[b.priority];
+    return (a.created_at || '').localeCompare(b.created_at || '');
+  });
+}
+
+function cardHTML(t) {
+  const shortId = t.id.slice(0, 6).toUpperCase();
+  const pLabel = { high: 'HIGH', medium: 'MED', low: 'LOW' }[t.priority];
+  const commentCount = (t.comments || []).length;
+  const created = formatDate(t.created_at);
+  return `
+    <div class="card" data-id="${t.id}" data-priority="${t.priority}" draggable="true"
+         ondragstart="handleDragStart(event, '${t.id}')"
+         ondragend="handleDragEnd(event)"
+         onclick="if(!didDrag)openModal('${t.id}')">
+      <div class="card-top">
+        <span class="card-id">#${shortId}</span>
+        <span class="badge badge-${t.priority}">${pLabel}</span>
+      </div>
+      <div class="card-title">${esc(t.title)}</div>
+      <div class="card-footer">
+        <span class="card-meta">${created}</span>
+        ${commentCount > 0 ? `<span class="card-comments">&#128172; ${commentCount}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+/* ── Add card forms ─────────────────────────────────────────────── */
+function showAddForm(status) {
+  document.getElementById(`add-btn-${status}`).style.display = 'none';
+  const form = document.getElementById(`add-form-${status}`);
+  form.classList.add('active');
+  document.getElementById(`add-title-${status}`).focus();
+}
+
+function hideAddForm(status) {
+  document.getElementById(`add-btn-${status}`).style.display = '';
+  document.getElementById(`add-form-${status}`).classList.remove('active');
+  document.getElementById(`add-title-${status}`).value = '';
+}
+
+async function submitAddForm(status) {
+  const titleEl = document.getElementById(`add-title-${status}`);
+  const priorityEl = document.getElementById(`add-priority-${status}`);
+  const title = titleEl.value.trim();
+  if (!title) { titleEl.focus(); return; }
+
+  try {
+    const task = await apiFetch('POST', '/api/tasks', {
+      title,
+      priority: priorityEl.value,
+      status,
+    });
+    tasks.push(task);
+    hideAddForm(status);
+    renderBoard();
+    toast('Card added', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+/* ── Drag & drop ────────────────────────────────────────────────── */
+let draggedId = null;
+let didDrag = false;
+
+function handleDragStart(e, id) {
+  draggedId = id;
+  didDrag = true;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  // Make all card children transparent to drag events during drag
+  document.querySelectorAll('.card').forEach(c => {
+    if (c.dataset.id !== id) c.style.pointerEvents = 'none';
+  });
+}
+
+function handleDragEnd(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.column-body').forEach(b => b.classList.remove('drag-over'));
+  // Restore pointer events on all cards
+  document.querySelectorAll('.card').forEach(c => c.style.pointerEvents = '');
+  draggedId = null;
+  // Reset didDrag after a tick so onclick can check it
+  setTimeout(() => { didDrag = false; }, 50);
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+  e.preventDefault();
+  const body = e.currentTarget;
+  body.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  const body = e.currentTarget;
+  if (!body.contains(e.relatedTarget)) {
+    body.classList.remove('drag-over');
+  }
+}
+
+async function handleDrop(e, newStatus) {
+  e.preventDefault();
+  const body = e.currentTarget;
+  body.classList.remove('drag-over');
+
+  const id = e.dataTransfer.getData('text/plain') || draggedId;
+  if (!id) return;
+
+  const task = tasks.find(t => t.id === id);
+  if (!task || task.status === newStatus) return;
+
+  try {
+    const updated = await apiFetch('PUT', `/api/tasks/${id}`, { status: newStatus });
+    const idx = tasks.findIndex(t => t.id === id);
+    if (idx !== -1) tasks[idx] = updated;
+    renderBoard();
+    toast(`Moved to ${newStatus.replace('_', ' ')}`, 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+/* ── Modal ──────────────────────────────────────────────────────── */
+function openModal(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  currentTaskId = id;
+
+  const shortId = task.id.slice(0, 6).toUpperCase();
+  const comments = task.comments || [];
+  const created = formatDateTime(task.created_at);
+  const updated = formatDateTime(task.updated_at);
+
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-id">#${shortId}</div>
+        <div class="modal-title-display" onclick="startEditTitle()" id="modal-title-display">${esc(task.title)}</div>
+        <input class="modal-title-input" id="modal-title-input" value="${escAttr(task.title)}"
+               onkeydown="if(event.key==='Enter')saveTitle();if(event.key==='Escape')cancelEditTitle()"
+               onblur="saveTitle()" />
+      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-meta">
+      <div class="meta-field">
+        <span class="meta-label">Status</span>
+        <div class="meta-value">
+          <select id="modal-status" onchange="updateTaskField('status', this.value)">
+            <option value="todo" ${task.status==='todo'?'selected':''}>To Do</option>
+            <option value="in_progress" ${task.status==='in_progress'?'selected':''}>In Progress</option>
+            <option value="done" ${task.status==='done'?'selected':''}>Done</option>
+          </select>
+        </div>
+      </div>
+      <div class="meta-field">
+        <span class="meta-label">Priority</span>
+        <div class="meta-value">
+          <select id="modal-priority" onchange="updateTaskField('priority', this.value)">
+            <option value="high" ${task.priority==='high'?'selected':''}>High</option>
+            <option value="medium" ${task.priority==='medium'?'selected':''}>Medium</option>
+            <option value="low" ${task.priority==='low'?'selected':''}>Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="meta-field">
+        <span class="meta-label">Created</span>
+        <span class="meta-date">${created}</span>
+      </div>
+      <div class="meta-field">
+        <span class="meta-label">Updated</span>
+        <span class="meta-date">${updated}</span>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label">Description</div>
+      <div class="description-display ${task.description ? '' : 'empty'}"
+           id="desc-display"
+           onclick="startEditDesc()">${task.description ? esc(task.description) : 'Click to add a description...'}</div>
+      <textarea class="description-input" id="desc-input"
+                onblur="saveDesc()"
+                onkeydown="if(event.key==='Escape'){cancelEditDesc()}">${esc(task.description || '')}</textarea>
+    </div>
+
+    <div class="modal-section">
+      <div class="section-label">Comments (${comments.length})</div>
+      <div class="comments-list" id="comments-list">
+        ${comments.length === 0 ? '<div class="no-comments">No comments yet</div>' :
+          comments.map(c => commentHTML(c)).join('')}
+      </div>
+      <div class="comment-input-wrap">
+        <div class="comment-avatar">L</div>
+        <textarea class="comment-input" id="comment-input"
+                  placeholder="Add a comment..."
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment()}"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="submitComment()">Send</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteTaskFromModal()">Delete card</button>
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+  currentTaskId = null;
+  renderBoard();
+}
+
+function commentHTML(c) {
+  return `
+    <div class="comment" data-comment-id="${c.id}">
+      <div class="comment-avatar">L</div>
+      <div class="comment-body">
+        <div class="comment-header">
+          <span class="comment-author">Lewis</span>
+          <span class="comment-time">${formatDateTime(c.created_at)}</span>
+        </div>
+        <div class="comment-text">${esc(c.text)}</div>
+      </div>
+      <button class="comment-delete" onclick="event.stopPropagation();deleteComment('${c.id}')" title="Delete">&times;</button>
+    </div>`;
+}
+
+/* ── Modal editing ──────────────────────────────────────────────── */
+function startEditTitle() {
+  document.getElementById('modal-title-display').style.display = 'none';
+  const input = document.getElementById('modal-title-input');
+  input.style.display = 'block';
+  input.focus();
+  input.select();
+}
+
+function cancelEditTitle() {
+  const task = tasks.find(t => t.id === currentTaskId);
+  const input = document.getElementById('modal-title-input');
+  input.value = task ? task.title : '';
+  input.style.display = 'none';
+  document.getElementById('modal-title-display').style.display = '';
+}
+
+async function saveTitle() {
+  const input = document.getElementById('modal-title-input');
+  const title = input.value.trim();
+  if (!title || !currentTaskId) { cancelEditTitle(); return; }
+  await updateTaskField('title', title);
+  document.getElementById('modal-title-display').textContent = title;
+  input.style.display = 'none';
+  document.getElementById('modal-title-display').style.display = '';
+}
+
+function startEditDesc() {
+  document.getElementById('desc-display').style.display = 'none';
+  const input = document.getElementById('desc-input');
+  input.style.display = 'block';
+  input.focus();
+}
+
+function cancelEditDesc() {
+  const task = tasks.find(t => t.id === currentTaskId);
+  document.getElementById('desc-input').value = task ? (task.description || '') : '';
+  document.getElementById('desc-input').style.display = 'none';
+  document.getElementById('desc-display').style.display = '';
+}
+
+async function saveDesc() {
+  const input = document.getElementById('desc-input');
+  const desc = input.value.trim();
+  if (!currentTaskId) return;
+  await updateTaskField('description', desc);
+  const display = document.getElementById('desc-display');
+  display.textContent = desc || 'Click to add a description...';
+  display.className = 'description-display' + (desc ? '' : ' empty');
+  input.style.display = 'none';
+  display.style.display = '';
+}
+
+async function updateTaskField(field, value) {
+  if (!currentTaskId) return;
+  try {
+    const updated = await apiFetch('PUT', `/api/tasks/${currentTaskId}`, { [field]: value });
+    const idx = tasks.findIndex(t => t.id === currentTaskId);
+    if (idx !== -1) tasks[idx] = updated;
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+/* ── Comments ──────────────────────────────────────────────────── */
+async function submitComment() {
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if (!text || !currentTaskId) return;
+
+  try {
+    const comment = await apiFetch('POST', `/api/tasks/${currentTaskId}/comments`, { text });
+    const task = tasks.find(t => t.id === currentTaskId);
+    if (task) task.comments.push(comment);
+    input.value = '';
+
+    const list = document.getElementById('comments-list');
+    const noComments = list.querySelector('.no-comments');
+    if (noComments) noComments.remove();
+    list.insertAdjacentHTML('beforeend', commentHTML(comment));
+    list.scrollTop = list.scrollHeight;
+
+    // Update section label count
+    const label = list.previousElementSibling;
+    if (label && task) label.textContent = `Comments (${task.comments.length})`;
+
+    toast('Comment added', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function deleteComment(commentId) {
+  if (!currentTaskId) return;
+  try {
+    await apiFetch('DELETE', `/api/tasks/${currentTaskId}/comments/${commentId}`);
+    const task = tasks.find(t => t.id === currentTaskId);
+    if (task) task.comments = task.comments.filter(c => c.id !== commentId);
+
+    const el = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (el) el.remove();
+
+    const list = document.getElementById('comments-list');
+    const label = list.previousElementSibling;
+    if (task) {
+      if (task.comments.length === 0) {
+        list.innerHTML = '<div class="no-comments">No comments yet</div>';
+      }
+      if (label) label.textContent = `Comments (${task.comments.length})`;
+    }
+    toast('Comment deleted', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+/* ── Delete task from modal ─────────────────────────────────────── */
+async function deleteTaskFromModal() {
+  if (!currentTaskId) return;
+  const task = tasks.find(t => t.id === currentTaskId);
+  if (!confirm(`Delete "${task ? task.title : 'this task'}"?`)) return;
+
+  try {
+    await apiFetch('DELETE', `/api/tasks/${currentTaskId}`);
+    tasks = tasks.filter(t => t.id !== currentTaskId);
+    closeModal();
+    toast('Card deleted', 'success');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+/* ── Utilities ──────────────────────────────────────────────────── */
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escAttr(s) { return (s||'').replace(/"/g, '&quot;'); }
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function toast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('hiding');
+    t.addEventListener('animationend', () => t.remove());
+  }, 2700);
+}
+
+/* Keyboard: Escape closes modal */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && currentTaskId) closeModal();
+});
+
+/* ── Init ───────────────────────────────────────────────────────── */
+loadTasks();
+</script>
+</body>
+</html>

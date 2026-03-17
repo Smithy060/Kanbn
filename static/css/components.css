@@ -1,0 +1,327 @@
+/* ── Kanbn components.css — buttons, badges, chips, toasts, inputs ── */
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  transition: opacity 0.15s, transform 0.1s, background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+}
+.btn:active { transform: scale(0.95); }
+
+.btn-primary {
+  background: var(--teal);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(13,115,119,0.3);
+}
+.btn-primary:hover {
+  background: var(--teal-dim);
+  box-shadow: 0 2px 8px rgba(13,115,119,0.4);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  font-weight: 400;
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--border-light);
+  background: rgba(255,255,255,0.03);
+}
+
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 4px; }
+
+.btn-danger {
+  background: transparent;
+  color: var(--red);
+  border: none;
+  padding: 4px 8px;
+  font-weight: 400;
+  transition: color 0.15s, transform 0.1s, background 0.15s;
+}
+.btn-danger:hover {
+  color: #e05555;
+  background: rgba(196,69,54,0.1);
+  border-radius: 4px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+.btn-icon:hover { color: var(--text); background: var(--surface-2); }
+
+/* ── Priority badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  transition: box-shadow 0.2s ease, transform 0.2s var(--ease-spring);
+}
+.badge-high   { background: rgba(224,122,95,0.15); color: var(--coral); }
+.badge-medium { background: rgba(212,168,67,0.15);  color: var(--gold); }
+.badge-low    { background: rgba(13,115,119,0.15);  color: var(--teal); }
+
+/* ── Label chips ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.chip-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+  opacity: 0.6;
+  font-size: 12px;
+  line-height: 1;
+  margin-left: 2px;
+  transition: opacity 0.15s;
+}
+.chip-remove:hover { opacity: 1; }
+
+/* Due date chip */
+.due-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.due-badge.normal  { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+.due-badge.today   { background: rgba(212,168,67,0.15); color: var(--gold); }
+.due-badge.overdue { background: rgba(224,122,95,0.15); color: var(--coral); }
+
+/* ── Toast ── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2000;
+}
+
+.toast {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 10px 16px;
+  animation: slideUp 0.25s var(--ease-out-expo);
+  max-width: 300px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.toast.hiding { animation: slideOut 0.2s ease forwards; }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error   { border-left: 3px solid var(--red); }
+.toast.info    { border-left: 3px solid var(--teal); }
+
+/* ── Filter chips (topbar) ── */
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.filter-chip:hover { border-color: var(--border-light); color: var(--text); }
+.filter-chip.active {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-subtle);
+}
+.filter-chip-close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.filter-chip-close:hover { opacity: 1; }
+
+/* ── Dropdown ── */
+.dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 160px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  z-index: 300;
+  overflow: hidden;
+  animation: formSlideIn 0.15s var(--ease-out-expo);
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+.dropdown-item:hover { background: var(--surface-3); color: var(--text); }
+.dropdown-item.active { color: var(--teal); }
+.dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* ── Input / Select base ── */
+.input-base {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.input-base:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-glow);
+}
+.input-base::placeholder { color: var(--text-dim); }
+
+.select-base {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237A9090' d='M0 0l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+/* ── Loading spinner ── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+  text-align: center;
+}
+.empty-state-icon { font-size: 32px; opacity: 0.4; }
+
+/* ── Keyboard shortcut overlay ── */
+.shortcuts-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 900;
+  justify-content: center;
+  align-items: center;
+}
+.shortcuts-overlay.active { display: flex; }
+
+.shortcuts-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  min-width: 340px;
+  max-width: 420px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+  animation: shortcutIn 0.2s var(--ease-out-expo);
+}
+.shortcuts-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.shortcut-row:last-child { border-bottom: none; }
+.shortcut-key {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--text);
+}
+.shortcut-desc { font-size: 13px; color: var(--text-muted); }

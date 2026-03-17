@@ -1,0 +1,119 @@
+/* ── Kanbn base.css — tokens, reset, typography, animations ── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root {
+  /* Brand colours */
+  --teal:        #0D7377;
+  --teal-dim:    #0a5c5f;
+  --teal-glow:   rgba(13, 115, 119, 0.35);
+  --teal-subtle: rgba(13, 115, 119, 0.08);
+  --coral:       #E07A5F;
+  --coral-glow:  rgba(224, 122, 95, 0.2);
+  --gold:        #D4A843;
+  --gold-glow:   rgba(212, 168, 67, 0.2);
+  --green:       #2D8B6F;
+  --green-glow:  rgba(45, 139, 111, 0.2);
+  --red:         #C44536;
+  --red-glow:    rgba(196, 69, 54, 0.2);
+
+  /* Surfaces */
+  --bg:          #161A1A;
+  --surface:     #1E2424;
+  --surface-2:   #272E2E;
+  --surface-3:   #303939;
+  --border:      #2E3838;
+  --border-light:#3d4d4d;
+
+  /* Text */
+  --text:        #E8EEEE;
+  --text-muted:  #7A9090;
+  --text-dim:    #5a7070;
+
+  /* Geometry */
+  --radius:      8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+
+  /* Typography */
+  --font:        "DM Sans", "Helvetica Neue", Helvetica, sans-serif;
+  --font-mono:   "JetBrains Mono", "SF Mono", monospace;
+
+  /* Easing */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth:    cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Sidebar */
+  --sidebar-w:     220px;
+  --sidebar-w-col: 56px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100%;
+  line-height: 1.5;
+  overflow: hidden;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* ── Keyframes ── */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes slideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(20px); }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes formSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes commentIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 6px var(--teal-glow); }
+  50%       { box-shadow: 0 0 14px var(--teal-glow), 0 0 4px var(--teal); }
+}
+@keyframes dropPulse {
+  0%, 100% { border-color: rgba(13, 115, 119, 0.2); }
+  50%       { border-color: rgba(13, 115, 119, 0.5); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes shortcutIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}

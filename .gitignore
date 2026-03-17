@@ -93,4 +93,5 @@ tasks.log
 *.jpeg
 agent-comms/
 .superpowers/
+.claude/
 .DS_Store
